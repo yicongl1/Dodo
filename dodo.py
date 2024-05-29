@@ -1,112 +1,89 @@
+from typing import Tuple, Dict
+
 class Hex:
-    def __init__(self, q, r):
+    def __init__(self, q: int, r: int):
         self.q = q
         self.r = r
         self.s = -q - r
 
-    def __eq__(self, other):
+    def __eq__(self, other: 'Hex') -> bool:
         return self.q == other.q and self.r == other.r and self.s == other.s
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((self.q, self.r, self.s))
 
-    def neighbors(self):
-        directions = [
-            Hex(1, 0), Hex(1, -1), Hex(0, -1),
-            Hex(-1, 0), Hex(-1, 1), Hex(0, 1)
-        ]
-        return [self.add(direction) for direction in directions]
-
-    def add(self, other):
-        return Hex(self.q + other.q, self.r + other.r)
+Grid = Tuple[Tuple[int, ...], ...]
+State = Grid
+Action = Tuple[Hex, Hex]
+Player = str
+Score = float
 
 class DodoGame:
-    def __init__(self, size):
-        self.size = size
-        self.board = self.initialize_board(size)
-        self.current_player = 'Red'
+    def __init__(self):
+        self.size = 4
+        self.board = self.initialize_board(4)
+        self.current_player = 'Blue'
 
-    def initialize_board(self, size):
+    def initialize_board(self, size: int) -> Dict[Hex, Player]:
         board = {}
-        for r in range(size):
-            board[Hex(0, r)] = 'R'
-            board[Hex(size-1, r)] = 'B'
+        red_coordinates = [(-3, 3), (-3, 2), (-3, 1), (-3, 0), (-2, 3), (-2, 2), (-2, 1), (-2, 0), (-1, 3), (-1, 2), (-1, 1), (0, 3), (0, 2)]
+        blue_coordinates = [(3, 0), (3, -1), (3, -2), (3, -3), (2, 0), (2, -1), (2, -2), (2, -3), (1, -1), (1, -2), (1, -3), (0, -2), (0, -3)]
+ 
+        for q in range(-size + 1, size):
+            for r in range(-size + 1, size):
+                if -size + 1 <= q + r < size:
+                    if (q, r) in red_coordinates:
+                        board[Hex(q, r)] = 'Red'
+                    elif (q, r) in blue_coordinates:
+                        board[Hex(q, r)] = 'Blue'
         return board
 
-    def display_board(self):
+    def display_board(self) -> None:
         min_q = min(hex.q for hex in self.board.keys())
         max_q = max(hex.q for hex in self.board.keys())
         min_r = min(hex.r for hex in self.board.keys())
         max_r = max(hex.r for hex in self.board.keys())
 
-        print("   ", end="")
+        print(" r     q ", end="")
         for q in range(min_q, max_q + 1):
             print(f" {q:2}", end="")
         print()
         
-        for r in range(min_r, max_r + 1):
+        for r in range(max_r, min_r - 1, -1):
             print(f"{r:2} ", end="")
             print(" " * (r - min_r), end="")
             for q in range(min_q, max_q + 1):
                 hex = Hex(q, r)
                 if hex in self.board:
-                    print(f" {self.board[hex]} ", end="")
-                else:
+                    print(f" {self.board[hex][0]} ", end="")
+                elif -4 < q + r < 4:
                     print(" . ", end="")
+                else:
+                    print("   ", end="")
             print()
 
-    def get_moves(self, player):
-        moves = []
-        for hex, occupant in self.board.items():
-            if occupant == player[0]:
-                for neighbor in hex.neighbors():
-                    if neighbor not in self.board and self.is_within_bounds(neighbor):
-                        moves.append((hex, neighbor))
-        return moves
-
-    def is_within_bounds(self, hex):
-        return 0 <= hex.q < self.size and 0 <= hex.r < self.size
-
-    def make_move(self, move):
+    def make_move(self, move: Action) -> None:
         start, end = move
         self.board[end] = self.board[start]
         del self.board[start]
 
-    def switch_player(self):
-        self.current_player = 'Blue' if self.current_player == 'Red' else 'Red'
+    def switch_player(self) -> None:
+        self.current_player = 'Red' if self.current_player == 'Blue' else 'Blue'
 
-    def play(self):
+    def play(self) -> None:
         while True:
             self.display_board()
-            moves = self.get_moves(self.current_player)
-            if not moves:
-                print(f'{self.current_player} has no moves available and wins!')
-                break
-
-            print(f"Available moves for {self.current_player}:")
-            for move in moves:
-                start, end = move
-                print(f"({start.q},{start.r}) -> ({end.q},{end.r})")
-
-            while True:
-                try:
-                    start_q = int(input(f'{self.current_player}, enter the start Q coordinate: '))
-                    start_r = int(input(f'{self.current_player}, enter the start R coordinate: '))
-                    end_q = int(input(f'Enter the end Q coordinate: '))
-                    end_r = int(input(f'Enter the end R coordinate: '))
-                    start_hex = Hex(start_q, start_r)
-                    end_hex = Hex(end_q, end_r)
-                    if (start_hex, end_hex) in moves:
-                        move = (start_hex, end_hex)
-                        break
-                    else:
-                        print("Invalid move. Please try again.")
-                except ValueError:
-                    print("Invalid input. Please enter valid coordinates.")
-
+            print(f"{self.current_player}'s turn")
+            print("Make your move.")
+            start_q = int(input('Enter the start Q coordinate: '))
+            start_r = int(input('Enter the start R coordinate: '))
+            end_q = int(input('Enter the end Q coordinate: '))
+            end_r = int(input('Enter the end R coordinate: '))
+            start_hex = Hex(start_q, start_r)
+            end_hex = Hex(end_q, end_r)
+            move = (start_hex, end_hex)
             self.make_move(move)
             self.switch_player()
 
-# Initialize the game with a board size of 5
-game = DodoGame(5)
+game = DodoGame()
 game.play()
