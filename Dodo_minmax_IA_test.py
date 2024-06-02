@@ -115,7 +115,7 @@ class DodoGame:
     def switch_player(self) -> None:
         self.current_player = 'Red' if self.current_player == 'Blue' else 'Blue'
 
-    def evaluate_board(self) -> int:
+    def evaluate_board(self) -> int:  # we have to change this in order to have a better IA 
         # Simple evaluation function: count the pieces of each player
         red_count = sum(1 for player in self.board.values() if player == 'Red')
         blue_count = sum(1 for player in self.board.values() if player == 'Blue')
