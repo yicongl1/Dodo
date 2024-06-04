@@ -11,13 +11,12 @@ class Hex:
     def __init__(self, q: int, r: int):
         self.q = q
         self.r = r
-        self.s = -q - r
 
     def __eq__(self, other: 'Hex') -> bool:
-        return self.q == other.q and self.r == other.r and self.s == other.s
+        return self.q == other.q and self.r == other.r
 
     def __hash__(self) -> int:
-        return hash((self.q, self.r, self.s))
+        return hash((self.q, self.r))
 
 Grid = Tuple[Tuple[int, ...], ...]
 State = Grid
@@ -28,13 +27,14 @@ Score = float
 class DodoGame:
     def __init__(self):
         self.size = 4
-        self.board = self.initialize_board(4)
+        self.board = self.initialize_board()
         self.current_player = 'Blue'
 
-    def initialize_board(self, size: int) -> Dict[Hex, Player]:
+    def initialize_board(self) -> Dict[Hex, Player]:
+        size = self.size
         board = {}
-        red_coordinates = [(-3, 3), (-3, 2), (-3, 1), (-3, 0), (-2, 3), (-2, 2), (-2, 1), (-2, 0), (-1, 3), (-1, 2), (-1, 1), (0, 3), (0, 2)]
-        blue_coordinates = [(3, 0), (3, -1), (3, -2), (3, -3), (2, 0), (2, -1), (2, -2), (2, -3), (1, -1), (1, -2), (1, -3), (0, -2), (0, -3)]
+        blue_coordinates = [(-3, 3), (-3, 2), (-3, 1), (-3, 0), (-2, 3), (-2, 2), (-2, 1), (-2, 0), (-1, 3), (-1, 2), (-1, 1), (0, 3), (0, 2)]
+        red_coordinates = [(3, 0), (3, -1), (3, -2), (3, -3), (2, 0), (2, -1), (2, -2), (2, -3), (1, -1), (1, -2), (1, -3), (0, -2), (0, -3)]
  
         for q in range(-size + 1, size):
             for r in range(-size + 1, size):
@@ -70,15 +70,15 @@ class DodoGame:
             print()
 
     def is_within_bounds(self, hex: Hex) -> bool:
-        return -self.size + 1 <= hex.q <= self.size - 1 and -self.size + 1 <= hex.r <= self.size - 1 and -self.size + 1 <= hex.q + hex.r <= self.size - 1
+        return (-self.size + 1 <= hex.q <= self.size - 1) and (-self.size + 1 <= hex.r <= self.size - 1 )and (-self.size + 1 <= hex.q + hex.r <= self.size - 1)
 
     def get_neighbors(self, hex: Hex) -> List[Hex]:
         directions = [
-            (1, 0, -1), (1, -1, 0), (0, -1, 1),
-            (-1, 0, 1), (-1, 1, 0), (0, 1, -1)
+            (1, 0), (1, -1), (0, -1),
+            (-1, 0), (-1, 1), (0, 1)
         ]
         neighbors = []
-        for dq, dr, ds in directions:
+        for dq, dr in directions:
             neighbor = Hex(hex.q + dq, hex.r + dr)
             if self.is_within_bounds(neighbor):
                 neighbors.append(neighbor)
@@ -97,9 +97,9 @@ class DodoGame:
             return False
 
         # Check movement direction based on player
-        if self.current_player == 'Red' and (end.r > start.r or (end.q != start.q and end.r == start.r)):
+        if self.current_player == 'Red' and (end.r < start.r or (end.q > start.q and end.r == start.r)):
             return False
-        if self.current_player == 'Blue' and (end.r < start.r or (end.q != start.q and end.r == start.r)):
+        if self.current_player == 'Blue' and (end.r > start.r or (end.q < start.q and end.r == start.r)):
             return False
 
         return True
@@ -184,9 +184,9 @@ class DodoGame:
                 self.switch_player()
 
         
-        print(f"{self.current_player} Lost!")
-        self.switch_player()
         print(f"{self.current_player} Win!")
+        self.switch_player()
+        print(f"{self.current_player} Lost!")
         
 
 game = DodoGame()
