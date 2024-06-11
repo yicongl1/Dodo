@@ -102,6 +102,20 @@ def display_board(state: State, hex_size: int) -> None:
 def strategy(env: Environment, state: State, player: Player, time_left: Time) -> tuple[Environment, Action]:
     pass
 
+def legals_dodo(state: State, player: Player) -> List[ActionDodo]:
+    legals = []
+    directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]  # Six directions for moving
+    
+    for cell, cell_player in state:
+        if cell_player == player:
+            for direction in directions:
+                new_cell = (cell[0] + direction[0], cell[1] + direction[1])
+                if new_cell not in [c[0] for c in state]:  # Check if the new cell is unoccupied
+                    legals.append((cell, new_cell))
+    
+    return legals
+
+
 
 ### Resultat de la partie
 # Cette fonction est appelée à la fin du jeu et revoie le joueur gagnant, l'état final et le score.
@@ -109,9 +123,19 @@ def strategy(env: Environment, state: State, player: Player, time_left: Time) ->
 def final_result(state: State, score: Score, player: Player):
     pass
 
+def final_dodo(state: State, player: Player) -> Score:
+    if not legals_dodo(state, player):
+        if player == B:  # Blue wins
+            print("Blue wins!")
+            return 1
+        else:  # Red wins
+            print("Red wins!")
+            return -1
+    else:
+        return 0  # Game continues
 
 
-
+"""
 class DodoGame:
     def __init__(self):
         self.size = 4
@@ -277,3 +301,5 @@ class DodoGame:
 
 game = DodoGame()
 game.play()
+
+"""
