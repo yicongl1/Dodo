@@ -197,9 +197,9 @@ class DodoGame:
 
             self.switch_player()
 
-        print(f"{self.current_player} Lost!")
-        self.switch_player()
         print(f"{self.current_player} Win!")
+        self.switch_player()
+        print(f"{self.current_player} Lost!")
 
 game = DodoGame()
 game.play()

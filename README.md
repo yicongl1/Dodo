@@ -36,6 +36,7 @@ Vous devez implémenter les 3 fonctions suivantes permettant à la boucle de jeu
 ```python
 def initialize(game: str, state: State, player: Player, 
                hex_size: int, total_time: Time) -> Environment
+            
 ```
 
 Cette fonction est lancée au début du jeu. Elle dit à quel jeu on joue, le joueur que l'on est et renvoie l'environnement, c'est-à-dire la structure de donnée (objet, dictionnaire, etc.) que vous utiliserez pour jouer.
