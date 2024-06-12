@@ -99,7 +99,7 @@ def display_board(state: State, hex_size: int) -> None:
         
 ### Fonction de jeu
 # Cette fonction est la strategie que vous utilisez pour jouer. Cette fonction est lancée à chaque fois que c'est à votre joueur de jouer.
-def strategy(env: Environment, state: State, player: Player, time_left: Time) -> tuple[Environment, Action]:
+"""def strategy(env: Environment, state: State, player: Player, time_left: Time) -> tuple[Environment, Action]:
     pass
 
 def legals_dodo(state: State, player: Player) -> List[ActionDodo]:
@@ -114,7 +114,110 @@ def legals_dodo(state: State, player: Player) -> List[ActionDodo]:
                     legals.append((cell, new_cell))
     
     return legals
+"""
+def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int) -> int:
+    if depth == 0:
+        return heuristic(state, player)
+    
+    opponent = 1 if player == 2 else 2
+    
+    if maximizing_player:
+        max_eval = float('-inf')
+        for action in generate_actions(state, player, hex_size):
+            new_state = apply_action(state, action, player)
+            eval = minmax(new_state, depth - 1, False, player, hex_size)
+            max_eval = max(max_eval, eval)
+        return max_eval
+    else:
+        min_eval = float('inf')
+        for action in generate_actions(state, opponent, hex_size):
+            new_state = apply_action(state, action, opponent)
+            eval = minmax(new_state, depth - 1, True, player, hex_size)
+            min_eval = min(min_eval, eval)
+        return min_eval
+    
+def generate_actions(state: State, player: Player, hex_size: int) -> List[ActionDodo]:
+    return legals_dodo(state, player, hex_size)
 
+def apply_action(state: State, action: ActionDodo, player: Player) -> State:
+    # Créer une copie de l'état actuel pour le modifier
+    new_state = list(state)
+    start, end = action
+    new_state.remove((start, player))
+    new_state.append((end, player))
+    return new_state
+
+
+def count_neighbors(state: State, cell: Cell) -> int:
+    directions = [(1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1)]
+    neighbors = 0
+    for dq, dr in directions:
+        neighbor = (cell[0] + dq, cell[1] + dr)
+        if neighbor in [pos for pos, player in state]:
+            neighbors += 1
+    return neighbors
+
+def heuristic(state: State, player: Player) -> int:
+    opponent = 1 if player == 2 else 2
+    score = 0
+    for cell, p in state:
+        if p == opponent:
+            score -= count_neighbors(state, cell)
+    return score
+
+def strategy(env: Environment, state: State, player: Player, time_left: Time) -> Tuple[Environment, ActionDodo]:
+    best_action = None
+    best_value = float('-inf')
+    depth = 3  # Profondeur de recherche
+    
+    for action in generate_actions(state, player, env['hex_size']):
+        new_state = apply_action(state, action, player)
+        move_value = minmax(new_state, depth - 1, False, player, env['hex_size'])
+        if move_value > best_value:
+            best_value = move_value
+            best_action = action
+    
+    return env, best_action
+
+def legals_dodo(state: State, player: Player, hex_size: int) -> List[ActionDodo]: #Il faut régler le problème que les joeurs peuvent "reculer" dans les legals moves (regarder la boucle en bas du programme)
+    legals = []
+    directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]  # Six directions for moving
+    
+    for cell, cell_player in state:
+        if cell_player == player:
+            for direction in directions:
+                new_cell = (cell[0] + direction[0], cell[1] + direction[1])
+                if is_within_bounds(new_cell, hex_size) and new_cell not in [c[0] for c in state]:  # Check if the new cell is within bounds and unoccupied
+                    legals.append((cell, new_cell))
+    
+    return legals
+
+def is_within_bounds(cell: Cell, hex_size: int) -> bool:
+    q, r = cell
+    return -hex_size < q < hex_size and -hex_size < r < hex_size and -hex_size < q + r < hex_size
+
+env = initialize("Dodo", [], 1, 4, 10)
+env['state'] = initialize_board_dodo(env['hex_size'])
+display_board(env["state"], env["hex_size"])
+
+state = env['state']
+player = env['player']
+time_left = env['total_time']
+for i in range(9) :
+    if player == 1:
+        env, best_action = strategy(env, state, player, time_left)
+        print(f"Best action: {best_action}")
+
+        state = apply_action(state, best_action, player)
+        display_board(state, env["hex_size"])
+        player = 2
+    else : 
+        env, best_action = strategy(env, state, player, time_left)
+        print(f"Best action: {best_action}")
+
+        state = apply_action(state, best_action, player)
+        display_board(state, env["hex_size"])
+        player = 1
 
 
 ### Resultat de la partie
