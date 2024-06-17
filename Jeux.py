@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, List, Optional
+from typing import Tuple, Dict, List, Optional, Union
 import random
 
 # Types de base utilisés par l'arbitre
@@ -181,8 +181,14 @@ def strategy(env: Environment, state: State, player: Player, time_left: Time) ->
 
 def legals_dodo(state: State, player: Player, hex_size: int) -> List[ActionDodo]: #Il faut régler le problème que les joeurs peuvent "reculer" dans les legals moves (regarder la boucle en bas du programme)
     legals = []
-    directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]  # Six directions for moving
+    blue_directions = [(1, 0), (1, -1), (0, -1)]  # four directions for moving
+    red_directions = [(-1, 0), (-1, 1), (0, 1)]
     
+    if player == B:
+        directions = blue_directions
+    else:
+        directions = red_directions
+
     for cell, cell_player in state:
         if cell_player == player:
             for direction in directions:
@@ -203,7 +209,7 @@ display_board(env["state"], env["hex_size"])
 state = env['state']
 player = env['player']
 time_left = env['total_time']
-for i in range(9) :
+for i in range(100) :
     if player == 1:
         env, best_action = strategy(env, state, player, time_left)
         print(f"Best action: {best_action}")
