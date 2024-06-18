@@ -1,5 +1,8 @@
 # Projet *Gopher and Dodo* : sujet v1.3
 
+##Online Game
+Gopher: https://ludii.games/details.php?keyword=Gopher
+Dodo:   https://ludii.games/details.php?keyword=Dodo
 ## ChangeLog
 
 - 07/05/2024, v1.3 : changement de l'annotation du type Action pour le rendre compatible avec les versions 3.5 ou plus récentes
