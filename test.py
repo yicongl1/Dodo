@@ -116,7 +116,10 @@ def is_within_bounds(cell: Cell, hex_size: int) -> bool:
 
 
 def player_opponent(player: Player) -> Player:
-    return R if player == B else B
+    if player == R:
+        return B
+    else:
+        return R
 
 
 def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
@@ -142,6 +145,9 @@ def minmax(state: State, depth: int, maximizing_player: bool, player: Player, he
 
 
 def apply_action(state: State, action: Action, player: Player, game: str) -> State:
+    if not action:
+        return state
+
     new_state = list(state)
     if game == "dodo":
         start, end = action
@@ -193,6 +199,7 @@ def evaluation(state: State, player: Player, game: str) -> int:
 
 def legals(state: State, player: Player, hex_size: int, game: str) -> List[Action]:
     legals = []
+
     if game == "dodo":
         blue_directions = [(1, 0), (1, -1), (0, -1)]
         red_directions = [(-1, 0), (-1, 1), (0, 1)]
@@ -224,12 +231,10 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
                 if cell_player == opponent:
                     for direction in directions:
                         new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                        if is_within_bounds(new_cell, hex_size) and new_cell not in [c[0] for c in state] and count_neighbors(state, new_cell, player) > 0:  # Check if the new cell is within bounds and unoccupied
+                        if is_within_bounds(new_cell, hex_size) and new_cell not in [c[0] for c in state] and not count_neighbors(state, new_cell, player):  # Check if the new cell is within bounds and unoccupied
                             legals.append(new_cell)
 
         # Debug information
-    print(f"State: {state}")
-    print(f"Legals: {legals}")
     return legals
 
 
@@ -240,7 +245,7 @@ def strategy_dodo(env: Environment, state: State, player: Player, time_left: Tim
     for action in legals(state, player, env['hex_size'], "dodo"):
         new_state = apply_action(state, action, player, "dodo")
         eval = minmax(new_state, 2, False, player, env['hex_size'], "dodo")
-        if eval > max_eval:
+        if eval >= max_eval:
             max_eval = eval
             best_action = action
     
@@ -251,12 +256,15 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     best_action = None
     max_eval = float('-inf')
     
-    for action in legals(state, player, env['hex_size'], "gopher"):
-        new_state = apply_action(state, action, player, "gopher")
-        eval = minmax(new_state, 2, False, player, env['hex_size'], "gopher")
-        if eval > max_eval:
-            max_eval = eval
-            best_action = action
+    if not state:
+        best_action = (0, 0)
+    else:
+        for action in legals(state, player, env['hex_size'], "gopher"):
+            new_state = apply_action(state, action, player, "gopher")
+            eval = minmax(new_state, 2, False, player, env['hex_size'], "gopher")
+            if eval >= max_eval:
+                max_eval = eval
+                best_action = action
     
     return env, best_action
 
@@ -271,7 +279,6 @@ def final(state: State, player: Player, game: str) -> Score:
             return 1
     return 0  # Game continues
 
-"""
 # Example usage for Dodo
 env = initialize("dodo", [], B, 4, 10)
 state = env['state']
@@ -279,18 +286,19 @@ player = env['player']
 time_left = env['total_time']
 
 # Simulate game loop for Dodo
-for i in range(100):
+for i in range(1000):
+    print(f"round: {i}")
+    print(f"player: {player}")
     env, best_action = strategy(env, state, player, time_left)
     print(f"Best action: {best_action}")
 
     state = apply_action(state, best_action, player, env['game'])
     display_board(state, env["hex_size"])
 
+    player = player_opponent(player)
+
     if final(state, player, env['game']) != 0:
         break
-
-    player = player_opponent(player)
-"""
 
 # Example usage for Gopher
 env = initialize("gopher", [], B, 4, 10)
@@ -299,6 +307,8 @@ player = env['player']
 time_left = env['total_time']
 # Simulate game loop for Gopher
 for i in range(100):
+    print(f"round: {i}")
+    print(f"player: {player}")
     env, best_action = strategy(env, state, player, time_left)
     print(f"Best action: {best_action}")
 
@@ -307,4 +317,6 @@ for i in range(100):
 
     player = player_opponent(player)
 
+    if final(state, player, env['game']) != 0:
+        break
 
