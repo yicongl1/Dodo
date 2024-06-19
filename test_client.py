@@ -4,11 +4,11 @@ import ast
 import argparse
 from typing import Dict, Any
 from gndclient import start, Action, Score, Player, State, Time, DODO_STR, GOPHER_STR
-from jeux import strategy
+from jeux import Environment, strategy, initialize, final
 
 Environment = Dict[str, Any]
 
-
+"""
 def initialize(
     game: str, state: State, player: Player, hex_size: int, total_time: Time
 ) -> Environment:
@@ -17,7 +17,7 @@ def initialize(
         f"{game} playing {player} on a grid of size {hex_size}. Time remaining: {total_time}"
     )
     return {}
-
+"""
 
 def strategy_brain(
     env: Environment, state: State, player: Player, time_left: Time
@@ -30,10 +30,10 @@ def strategy_brain(
     t = ast.literal_eval(s)
     return (env, t)
 
-
+"""
 def final_result(state: State, score: Score, player: Player):
     print(f"Ending: {player} wins with a score of {score}")
-
+"""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -61,8 +61,7 @@ if __name__ == "__main__":
         args.password,
         available_games,
         initialize,
-        strategy_brain,
         strategy,
-        final_result,
+        final,
         gui=True,
     )

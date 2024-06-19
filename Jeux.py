@@ -44,6 +44,7 @@ def initialize(game: str, state: State, player: Player, hex_size: int, total_tim
         'total_time': total_time  # Temps total pour chaque joueur
     }
     
+    print("Init complete")
     return environment
 
 
@@ -51,54 +52,57 @@ def generate_coordinates(size: int, game: str, color: int) -> List[Cell]:
     coordinates = []
     if game == DODO_STR:
         if color == BLUE:
-            for r in range(size - 1, -1, -1):
-                for q in range(-size + 1, 1):
-                    if abs(q) >= size - 2 - abs(r):
-                        coordinates.append((r, q))
+            for x in range(-size + 1, 1):
+                for y in range(-size + 1, 1):
+                    if abs(y) >= size - 2 + x:
+                        coordinates.append((x, y))
         elif color == RED:
-            for r in range(-size + 1, 1):
-                for q in range(size):
-                    if abs(r) >= size - 2 - q:
-                        coordinates.append((r, q))
+            for x in range(size):
+                for y in range(size):
+                    if x >= size - 2 - y:
+                        coordinates.append((x, y))
     return coordinates
 
 
 def initialize_board(size: int, game: str) -> State:
     state = []
+    for x in range(-size + 1, size):
+        for y in range(-size + 1, size):
+            if -size < x < size and -size < y < size and -size < -x + y < size:
+                state.append(((x, y), EMPTY))
+    
     if game == DODO_STR:
         blue_coordinates = generate_coordinates(size, game, BLUE)
         red_coordinates = generate_coordinates(size, game, RED)
         for coord in blue_coordinates:
-            state.append((coord, BLUE))
+            state[state.index((coord, EMPTY))] = (coord, BLUE)
         for coord in red_coordinates:
-            state.append((coord, RED))
-    elif game == GOPHER_STR:
-        state = []
+            state[state.index((coord, EMPTY))] = (coord, RED)
+
     return state
 
-
 def display_board(state: State, hex_size: int) -> None:
-    min_q = -hex_size + 1
-    max_q = hex_size - 1
-    min_r = -hex_size + 1
-    max_r = hex_size - 1
+    min_x = -hex_size + 1
+    max_x = hex_size - 1
+    min_y = -hex_size + 1
+    max_y = hex_size - 1
 
     board_dict = {cell: player for cell, player in state}
 
-    print(" r     q ", end="")
-    for q in range(min_q, max_q + 1):
-        print(f" {q:2}", end="")
+    print(" x" + " "*(2*hex_size-2) + "y", end="")
+    for y in range(min_y, max_y + 1):
+        print(f" {y:2}", end="")
     print()
 
-    for r in range(max_r, min_r - 1, -1):
-        print(f"{r:2} ", end="")
-        print(" " * (r - min_r), end="")
-        for q in range(min_q, max_q + 1):
-            cell = (r, q)
+    for x in range(min_x, max_x + 1):
+        print(f"{x:2} ", end="")
+        print(" " * (- x - min_x), end="")
+        for y in range(min_y, max_y + 1):
+            cell = (x, y)
             if cell in board_dict:
                 player = board_dict[cell]
                 print(f" {player} ", end="")
-            elif min_q <= q + r <= max_q:
+            elif min_y <= - x + y <= max_y:
                 print(" . ", end="")
             else:
                 print("   ", end="")
@@ -107,6 +111,7 @@ def display_board(state: State, hex_size: int) -> None:
 
 ### Fonction de jeu
 def strategy(env: Environment, state: State, player: Player, time_left: Time) -> Tuple[Environment, Action]:
+    print(f"state: {state}") 
     if env['game'] == DODO_STR:
         return strategy_dodo(env, state, player, time_left)
     elif env['game'] == GOPHER_STR:
@@ -114,8 +119,8 @@ def strategy(env: Environment, state: State, player: Player, time_left: Time) ->
 
 
 def is_within_bounds(cell: Cell, hex_size: int) -> bool:
-    r, q = cell
-    return -hex_size < q < hex_size and -hex_size < r < hex_size and -hex_size < q + r < hex_size
+    x, y = cell
+    return -hex_size < x < hex_size and -hex_size < y < hex_size and -hex_size < - x + y < hex_size
 
 
 def player_opponent(player: Player) -> Player:
@@ -127,7 +132,7 @@ def player_opponent(player: Player) -> Player:
 
 def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
     if depth == 0:
-        return evaluation(state, player, game)
+        return evaluation(state, player, game, hex_size)
     
     opponent = player_opponent(player)
     
@@ -154,10 +159,11 @@ def apply_action(state: State, action: Action, player: Player, game: str) -> Sta
     new_state = list(state)
     if game == DODO_STR:
         start, end = action
-        new_state.remove((start, player))
-        new_state.append((end, player))
+        new_state[new_state.index((start, player))] = (start, EMPTY)
+        new_state[new_state.index((end, EMPTY))] = (end, player)
     elif game == GOPHER_STR:
-        new_state.append((action, player))
+        new_state[new_state.index((action, EMPTY))] = (action, player)
+    
     return new_state
 
 
@@ -165,20 +171,20 @@ def neighbors_list(state: State, cell: Cell) -> State:
     neighbors = []
     directions = [(1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1)]
 
-    for dr, dq in directions:
-        neighbor = (cell[0] + dr, cell[1] + dq)
+    for dx, dy in directions:
+        neighbor = (cell[0] + dx, cell[1] + dy)
         for pos, player in state:
-            if pos == neighbor:
+            if pos == neighbor and player != EMPTY:
                 neighbors.append((pos, player))
     
     return neighbors
 
 
-def count_neighbors(state: State, cell: Cell, player: Player = 0) -> int:
+def count_neighbors(state: State, cell: Cell, player: Player = EMPTY) -> int:
     neighbors = neighbors_list(state, cell)
     count = 0
 
-    if player == 0:
+    if player == EMPTY:
         count = len(neighbors)
     else:
         for pos, cell_player in neighbors:
@@ -188,7 +194,7 @@ def count_neighbors(state: State, cell: Cell, player: Player = 0) -> int:
     return count
 
 
-def evaluation(state: State, player: Player, game: str) -> int:
+def evaluation(state: State, player: Player, game: str, hex_size: int) -> int:
     if game == DODO_STR:
         opponent = player_opponent(player)
         score = 0
@@ -197,15 +203,15 @@ def evaluation(state: State, player: Player, game: str) -> int:
                 score -= count_neighbors(state, cell)
         return score
     elif game == GOPHER_STR:
-        return len(legals(state, player, env['hex_size'], game))
+        return len(legals(state, player, hex_size, game))
 
 
 def legals(state: State, player: Player, hex_size: int, game: str) -> List[Action]:
     legals = []
 
     if game == DODO_STR:
-        red_directions = [(1, 0), (1, -1), (0, -1)]
-        blue_directions = [(-1, 0), (-1, 1), (0, 1)]
+        blue_directions = [(-1, 0), (-1, -1), (0, -1)]
+        red_directions = [(1, 0), (1, 1), (0, 1)]
         
         if player == BLUE:
             directions = blue_directions
@@ -216,28 +222,20 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
             if cell_player == player:
                 for direction in directions:
                     new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                    if is_within_bounds(new_cell, hex_size) and new_cell not in [c[0] for c in state]:  # Check if the new cell is within bounds and unoccupied
+                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state:  # Check if the new cell is within bounds and unoccupied
                         legals.append((cell, new_cell))
 
     elif game == GOPHER_STR:
         directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
         opponent = player_opponent(player)
 
-        if not state:  # State is empty, initial move
-            for dq in range(-hex_size, hex_size + 1):
-                for dr in range(-hex_size, hex_size + 1):   
-                    new_cell = (dr, dq)         
-                    if is_within_bounds(new_cell, hex_size):        
+        for cell, cell_player in state:
+            if cell_player == opponent:
+                for direction in directions:
+                    new_cell = (cell[0] + direction[0], cell[1] + direction[1])
+                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state and not count_neighbors(state, new_cell, player):  # Check if the new cell is within bounds and unoccupied
                         legals.append(new_cell)
-        else:
-            for cell, cell_player in state:
-                if cell_player == opponent:
-                    for direction in directions:
-                        new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                        if is_within_bounds(new_cell, hex_size) and new_cell not in [c[0] for c in state] and not count_neighbors(state, new_cell, player):  # Check if the new cell is within bounds and unoccupied
-                            legals.append(new_cell)
 
-        # Debug information
     return legals
 
 
@@ -252,6 +250,8 @@ def strategy_dodo(env: Environment, state: State, player: Player, time_left: Tim
             max_eval = eval
             best_action = action
     
+    print(f"Best action: {best_action}")
+
     return env, best_action
 
 
@@ -269,6 +269,8 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
                 max_eval = eval
                 best_action = action
     
+    print(f"Best action: {best_action}")
+
     return env, best_action
 
 
@@ -282,8 +284,9 @@ def final(state: State, player: Player, game: str) -> Score:
             return 1
     return 0  # Game continues
 
+"""
 # Example usage for Dodo
-env = initialize(DODO_STR, [], BLUE, 4, 10)
+env = initialize(DODO_STR, [], BLUE, 6, 10)
 state = env['state']
 player = env['player']
 time_left = env['total_time']
@@ -302,7 +305,8 @@ for i in range(1000):
 
     if final(state, player, env['game']) != 0:
         break
-
+"""
+"""
 # Example usage for Gopher
 env = initialize(GOPHER_STR, [], BLUE, 4, 10)
 state = env['state']
@@ -322,3 +326,4 @@ for i in range(100):
 
     if final(state, player, env['game']) != 0:
         break
+"""
