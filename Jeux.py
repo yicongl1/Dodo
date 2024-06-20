@@ -130,6 +130,24 @@ def player_opponent(player: Player) -> Player:
         return RED
 
 
+def memoize(f: Callable[[State, int, bool, Player, int, str], int]) -> Callable[[State, int, bool, Player, int, str], int]:
+    cache = {}  # closure
+
+    def memoized_minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str):
+        # Convert state to a hashable type (tuple) for caching
+        state_key = tuple((cell, player) for cell, player in state)
+        key = (state_key, depth, maximizing_player, player, hex_size, game)
+
+        if key in cache:
+            return cache[key]
+        
+        val = f(state, depth, maximizing_player, player, hex_size, game)
+        cache[key] = val
+        return val
+    
+    return memoized_minmax
+
+@memoize
 def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
     if depth == 0:
         return evaluation(state, player, game, hex_size)
@@ -275,12 +293,12 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
 
 
 def final(state: State, player: Player, game: str) -> Score:
-    if not legals(state, player, env['hex_size'], game):
+    if not legals(state, player, 6, game):
         if player == BLUE:  # Blue wins
-            print("Blue wins!")
+            print("RED wins!")
             return -1
         else:  # Red wins
-            print("Red wins!")
+            print("BLUE wins!")
             return 1
     return 0  # Game continues
 
