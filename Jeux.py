@@ -244,7 +244,7 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
                         legals.append((cell, new_cell))
 
     elif game == GOPHER_STR:
-        directions = [(1, 0), (1, -1), (0, -1), (-1, 0), (-1, 1), (0, 1)]
+        directions = [(1, 0), (1, 1), (0, 1), (-1, 0), (-1, -1), (0, -1)]
         opponent = player_opponent(player)
 
         for cell, cell_player in state:
