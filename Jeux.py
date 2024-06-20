@@ -187,7 +187,7 @@ def apply_action(state: State, action: Action, player: Player, game: str) -> Sta
 
 def neighbors_list(state: State, cell: Cell) -> State:
     neighbors = []
-    directions = [(1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1)]
+    directions = [(1, 0), (1, 1), (0, 1), (-1, 0), (-1, -1), (0, -1)]
 
     for dx, dy in directions:
         neighbor = (cell[0] + dx, cell[1] + dy)
@@ -251,7 +251,7 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
             if cell_player == opponent:
                 for direction in directions:
                     new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state and not count_neighbors(state, new_cell, player):  # Check if the new cell is within bounds and unoccupied
+                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state and not count_neighbors(state, new_cell, player) and count_neighbors(state, new_cell, cell_player) == 1:  # Check if the new cell is within bounds and unoccupied
                         legals.append(new_cell)
 
     return legals
