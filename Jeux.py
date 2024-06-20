@@ -51,12 +51,12 @@ def initialize(game: str, state: State, player: Player, hex_size: int, total_tim
 def generate_coordinates(size: int, game: str, color: int) -> List[Cell]:
     coordinates = []
     if game == DODO_STR:
-        if color == BLUE:
+        if color == RED:
             for x in range(-size + 1, 1):
                 for y in range(-size + 1, 1):
                     if abs(y) >= size - 2 + x:
                         coordinates.append((x, y))
-        elif color == RED:
+        elif color == BLUE:
             for x in range(size):
                 for y in range(size):
                     if x >= size - 2 - y:
@@ -81,6 +81,7 @@ def initialize_board(size: int, game: str) -> State:
 
     return state
 
+"""
 def display_board(state: State, hex_size: int) -> None:
     min_x = -hex_size + 1
     max_x = hex_size - 1
@@ -107,11 +108,10 @@ def display_board(state: State, hex_size: int) -> None:
             else:
                 print("   ", end="")
         print()
-
+"""
 
 ### Fonction de jeu
 def strategy(env: Environment, state: State, player: Player, time_left: Time) -> Tuple[Environment, Action]:
-    print(f"state: {state}") 
     if env['game'] == DODO_STR:
         return strategy_dodo(env, state, player, time_left)
     elif env['game'] == GOPHER_STR:
@@ -292,13 +292,12 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     return env, best_action
 
 
-def final(state: State, score: Score, player: Player) -> Score:
-        if player == 1 :  # Blue wins
-            print("Blue wins!")
-            return 
-        else:  # Red wins
-            print("Red wins!")
-            return 1
+def final(state: State, score: Score, player: Player):
+    print(f"Ending: {player} wins with a score of {score}")
+    if player == BLUE :  # Blue wins
+        print("Blue wins!")
+    else:  # Red wins
+        print("Red wins!")
 
 """
 # Example usage for Dodo
