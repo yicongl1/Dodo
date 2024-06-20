@@ -292,15 +292,13 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     return env, best_action
 
 
-def final(state: State, player: Player, game: str) -> Score:
-    if not legals(state, player, 6, game):
-        if player == BLUE:  # Blue wins
-            print("RED wins!")
-            return -1
+def final(state: State, score: Score, player: Player) -> Score:
+        if player == 1 :  # Blue wins
+            print("Blue wins!")
+            return 
         else:  # Red wins
-            print("BLUE wins!")
+            print("Red wins!")
             return 1
-    return 0  # Game continues
 
 """
 # Example usage for Dodo
