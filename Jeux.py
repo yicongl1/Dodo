@@ -277,7 +277,7 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     best_action = None
     max_eval = float('-inf')
     
-    if not state:
+    if not legals(state, player, env['hex_size'], GOPHER_STR):
         best_action = (0, 0)
     else:
         for action in legals(state, player, env['hex_size'], GOPHER_STR):
@@ -286,7 +286,6 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
             if eval >= max_eval:
                 max_eval = eval
                 best_action = action
-    
     print(f"Best action: {best_action}")
 
     return env, best_action
