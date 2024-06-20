@@ -218,7 +218,7 @@ def evaluation(state: State, player: Player, game: str, hex_size: int) -> int:
         score = 0
         for cell, p in state:
             if p == opponent:
-                score -= count_neighbors(state, cell)
+                score += count_neighbors(state, cell)
         return score
     elif game == GOPHER_STR:
         return len(legals(state, player, hex_size, game))
