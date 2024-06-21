@@ -215,13 +215,13 @@ def count_neighbors(state: State, cell: Cell, player: Player = EMPTY) -> int: #C
 def evaluation(state: State, player: Player, game: str, hex_size: int) -> int:
     if game == DODO_STR:
         opponent = player_opponent(player)
-        score = 0
-        for cell, p in state:
-            if p == opponent:
-                score += count_neighbors(state, cell) #on augmente le score si, lors du coup, le nombre de voisins de l'adversaire augmente
-        return score
+        # score = 0
+        # for cell, p in state:
+        #     if p == opponent:
+        #         score -= count_neighbors(state, cell) #on augmente le score si, lors du coup, le nombre de voisins de l'adversaire augmente
+        return -len(legals(state, player, hex_size, game))
     elif game == GOPHER_STR:
-        return len(legals(state, player, hex_size, game)) #retourne le nombre legal de coup
+        return -len(legals(state, player, hex_size, game)) #retourne le nombre legal de coup
 
 
 def legals(state: State, player: Player, hex_size: int, game: str) -> List[Action]:
@@ -263,7 +263,7 @@ def strategy_dodo(env: Environment, state: State, player: Player, time_left: Tim
     
     for action in legals(state, player, env['hex_size'], DODO_STR):
         new_state = apply_action(state, action, player, DODO_STR)
-        eval = minmax(new_state, 3, False, player, env['hex_size'], DODO_STR)
+        eval = minmax(new_state, 4, False, player, env['hex_size'], DODO_STR)
         if eval >= max_eval: #prend la meilleure evaluation
             max_eval = eval
             best_action = action
@@ -282,7 +282,7 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     else:
         for action in legals(state, player, env['hex_size'], GOPHER_STR):
             new_state = apply_action(state, action, player, GOPHER_STR)
-            eval = minmax(new_state, 3, False, player, env['hex_size'], GOPHER_STR)
+            eval = minmax(new_state, 4, False, player, env['hex_size'], GOPHER_STR)
             if eval >= max_eval: #Ici aussi, prend la meilleure evaluation
                 max_eval = eval
                 best_action = action
