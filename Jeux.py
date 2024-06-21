@@ -130,64 +130,25 @@ def player_opponent(player: Player) -> Player: #facilite l'utilisation de l'adve
         return RED
 
 
-# def memoize(f: Callable[[State, int, bool, Player, int, str], int]) -> Callable[[State, int, bool, Player, int, str], int]:
-#     cache = {}  #cache
+def memoize(f: Callable[[State, int, bool, Player, int, str], int]) -> Callable[[State, int, bool, Player, int, str], int]:
+    cache = {}  #cache
 
-#     def memoized_minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str):
-#         #conversion en tuple pour le cache
-#         state_key = tuple((cell, player) for cell, player in state)
-#         key = (state_key, depth, maximizing_player, player, hex_size, game)
-
-#         if key in cache: #si le cas est reconnu dans le cache, alors on renvoie le resultat déjà calculé
-#             return cache[key]
-        
-#         val = f(state, depth, maximizing_player, player, hex_size, game) #si le cas n'est pas connu, on l'ajoute au cache
-#         cache[key] = val
-#         return val
-    
-#     return memoized_minmax
-
-# @memoize
-# def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
-#     if depth == 0: #lorsque la profondeur devient 0, alors on évalue
-#         return evaluation(state, player, game, hex_size)
-    
-#     opponent = player_opponent(player)
-    
-#     if maximizing_player: #maximise le coup du joueur
-#         max_eval = float('-inf')
-#         for action in legals(state, player, hex_size, game):
-#             new_state = apply_action(state, action, player, game)
-#             eval = minmax(new_state, depth - 1, False, player, hex_size, game)
-#             max_eval = max(max_eval, eval)
-#         return max_eval
-#     else: #minimise le coup de l'adversaire
-#         min_eval = float('inf')
-#         for action in legals(state, opponent, hex_size, game):
-#             new_state = apply_action(state, action, opponent, game)
-#             eval = minmax(new_state, depth - 1, True, player, hex_size, game)
-#             min_eval = min(min_eval, eval)
-#         return min_eval
-
-def memoize(f: Callable[[State, int, bool, Player, int, str, float, float], int]) -> Callable[[State, int, bool, Player, int, str, float, float], int]:
-    cache = {} #cache
-
-    def memoized_minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str, alpha: float, beta: float) -> int:
+    def memoized_minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str):
         #conversion en tuple pour le cache
         state_key = tuple((cell, player) for cell, player in state)
-        key = (state_key, depth, maximizing_player, player, hex_size, game, alpha, beta)
+        key = (state_key, depth, maximizing_player, player, hex_size, game)
 
         if key in cache: #si le cas est reconnu dans le cache, alors on renvoie le resultat déjà calculé
             return cache[key]
         
-        val = f(state, depth, maximizing_player, player, hex_size, game, alpha, beta) #si le cas n'est pas connu, on l'ajoute au cache
+        val = f(state, depth, maximizing_player, player, hex_size, game) #si le cas n'est pas connu, on l'ajoute au cache
         cache[key] = val
         return val
     
     return memoized_minmax
 
 @memoize
-def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str, alpha: float, beta: float) -> int:
+def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
     if depth == 0: #lorsque la profondeur devient 0, alors on évalue
         return evaluation(state, player, game, hex_size)
     
@@ -197,22 +158,17 @@ def minmax(state: State, depth: int, maximizing_player: bool, player: Player, he
         max_eval = float('-inf')
         for action in legals(state, player, hex_size, game):
             new_state = apply_action(state, action, player, game)
-            eval = minmax(new_state, depth - 1, False, player, hex_size, game, alpha, beta)
+            eval = minmax(new_state, depth - 1, False, player, hex_size, game)
             max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
-            if beta <= alpha:
-                break
         return max_eval
     else: #minimise le coup de l'adversaire
         min_eval = float('inf')
         for action in legals(state, opponent, hex_size, game):
             new_state = apply_action(state, action, opponent, game)
-            eval = minmax(new_state, depth - 1, True, player, hex_size, game, alpha, beta)
+            eval = minmax(new_state, depth - 1, True, player, hex_size, game)
             min_eval = min(min_eval, eval)
-            beta = min(beta, eval)
-            if beta <= alpha:
-                break
         return min_eval
+
 
 def apply_action(state: State, action: Action, player: Player, game: str) -> State:
     if not action: #si pas d'action alors on retourne le meme etat
@@ -257,21 +213,15 @@ def count_neighbors(state: State, cell: Cell, player: Player = EMPTY) -> int: #C
 
 
 def evaluation(state: State, player: Player, game: str, hex_size: int) -> int:
-    score = 0
-    opponent = player_opponent(player)
     if game == DODO_STR:
-        score += len(legals(state, player, hex_size, game))
-        # for cell, p in state:
-        #     if p == opponent:
-        #         score += 0.001 * count_neighbors(state, cell) #on augmente le score si, lors du coup, le nombre de voisins de l'adversaire augmente
+        opponent = player_opponent(player)
+        score = 0
+        for cell, p in state:
+            if p == opponent:
+                score += count_neighbors(state, cell) #on augmente le score si, lors du coup, le nombre de voisins de l'adversaire augmente
+        return score
     elif game == GOPHER_STR:
-        score += len(legals(state, player, hex_size, game)) #retourne le nombre legal de coup
-        # for cell, p in state:
-        #     if p == player:
-        #         score += 0.001 * (abs(cell[0]) + abs(cell[1]))
-
-        #         score -= 0.001 * count_neighbors(state, cell)
-    return score
+        return len(legals(state, player, hex_size, game)) #retourne le nombre legal de coup
 
 
 def legals(state: State, player: Player, hex_size: int, game: str) -> List[Action]:
@@ -313,7 +263,7 @@ def strategy_dodo(env: Environment, state: State, player: Player, time_left: Tim
     
     for action in legals(state, player, env['hex_size'], DODO_STR):
         new_state = apply_action(state, action, player, DODO_STR)
-        eval = minmax(new_state, 2, False, player, env['hex_size'], DODO_STR, float('-inf'), float('inf'))
+        eval = minmax(new_state, 3, False, player, env['hex_size'], DODO_STR)
         if eval >= max_eval: #prend la meilleure evaluation
             max_eval = eval
             best_action = action
@@ -332,7 +282,7 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     else:
         for action in legals(state, player, env['hex_size'], GOPHER_STR):
             new_state = apply_action(state, action, player, GOPHER_STR)
-            eval = minmax(new_state, 2, False, player, env['hex_size'], DODO_STR, float('-inf'), float('inf'))
+            eval = minmax(new_state, 3, False, player, env['hex_size'], GOPHER_STR)
             if eval >= max_eval: #Ici aussi, prend la meilleure evaluation
                 max_eval = eval
                 best_action = action
