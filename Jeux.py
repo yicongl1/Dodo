@@ -47,7 +47,7 @@ def initialize(game: str, state: State, player: Player, hex_size: int, total_tim
     print("Init complete")
     return environment
 
-
+#création des coordonnées utilisées plus tard sur le plateau
 def generate_coordinates(size: int, game: str, color: int) -> List[Cell]:
     coordinates = []
     if game == DODO_STR:
@@ -63,7 +63,7 @@ def generate_coordinates(size: int, game: str, color: int) -> List[Cell]:
                         coordinates.append((x, y))
     return coordinates
 
-
+#initialisation du plateau
 def initialize_board(size: int, game: str) -> State:
     state = []
     for x in range(-size + 1, size):
@@ -112,18 +112,18 @@ def display_board(state: State, hex_size: int) -> None:
 
 ### Fonction de jeu
 def strategy(env: Environment, state: State, player: Player, time_left: Time) -> Tuple[Environment, Action]:
-    if env['game'] == DODO_STR:
+    if env['game'] == DODO_STR: #si le jeu est dodo, appliquer la strategie pour le dodo
         return strategy_dodo(env, state, player, time_left)
-    elif env['game'] == GOPHER_STR:
+    elif env['game'] == GOPHER_STR: #si le jeu est dodo, appliquer la strategie pour le dodo
         return strategy_gopher(env, state, player, time_left)
 
 
-def is_within_bounds(cell: Cell, hex_size: int) -> bool:
+def is_within_bounds(cell: Cell, hex_size: int) -> bool: #vérifie que la cellule est bel est bien dans la grille
     x, y = cell
     return -hex_size < x < hex_size and -hex_size < y < hex_size and -hex_size < - x + y < hex_size
 
 
-def player_opponent(player: Player) -> Player:
+def player_opponent(player: Player) -> Player: #facilite l'utilisation de l'adversaire dans le reste du code
     if player == RED:
         return BLUE
     else:
@@ -131,17 +131,17 @@ def player_opponent(player: Player) -> Player:
 
 
 def memoize(f: Callable[[State, int, bool, Player, int, str], int]) -> Callable[[State, int, bool, Player, int, str], int]:
-    cache = {}  # closure
+    cache = {}  #cache
 
     def memoized_minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str):
-        # Convert state to a hashable type (tuple) for caching
+        #conversion en tuple pour le cache
         state_key = tuple((cell, player) for cell, player in state)
         key = (state_key, depth, maximizing_player, player, hex_size, game)
 
-        if key in cache:
+        if key in cache: #si le cas est reconnu dans le cache, alors on renvoie le resultat déjà calculé
             return cache[key]
         
-        val = f(state, depth, maximizing_player, player, hex_size, game)
+        val = f(state, depth, maximizing_player, player, hex_size, game) #si le cas n'est pas connu, on l'ajoute au cache
         cache[key] = val
         return val
     
@@ -149,19 +149,19 @@ def memoize(f: Callable[[State, int, bool, Player, int, str], int]) -> Callable[
 
 @memoize
 def minmax(state: State, depth: int, maximizing_player: bool, player: Player, hex_size: int, game: str) -> int:
-    if depth == 0:
+    if depth == 0: #lorsque la profondeur devient 0, alors on évalue
         return evaluation(state, player, game, hex_size)
     
     opponent = player_opponent(player)
     
-    if maximizing_player:
+    if maximizing_player: #maximise le coup du joueur
         max_eval = float('-inf')
         for action in legals(state, player, hex_size, game):
             new_state = apply_action(state, action, player, game)
             eval = minmax(new_state, depth - 1, False, player, hex_size, game)
             max_eval = max(max_eval, eval)
         return max_eval
-    else:
+    else: #minimise le coup de l'adversaire
         min_eval = float('inf')
         for action in legals(state, opponent, hex_size, game):
             new_state = apply_action(state, action, opponent, game)
@@ -171,21 +171,21 @@ def minmax(state: State, depth: int, maximizing_player: bool, player: Player, he
 
 
 def apply_action(state: State, action: Action, player: Player, game: str) -> State:
-    if not action:
+    if not action: #si pas d'action alors on retourne le meme etat
         return state
 
     new_state = list(state)
-    if game == DODO_STR:
+    if game == DODO_STR: #Lorsque le jeu est dodo, on applique l'action choisie et change l'état
         start, end = action
-        new_state[new_state.index((start, player))] = (start, EMPTY)
+        new_state[new_state.index((start, player))] = (start, EMPTY) #Ici on change la nouvelle position du pion et enlève l'ancien
         new_state[new_state.index((end, EMPTY))] = (end, player)
-    elif game == GOPHER_STR:
-        new_state[new_state.index((action, EMPTY))] = (action, player)
+    elif game == GOPHER_STR: #Lorsque le jeu est gopher, on applique l'action choisie et change l'état
+        new_state[new_state.index((action, EMPTY))] = (action, player) #on rajoute le pion dans le nouvel état
     
     return new_state
 
 
-def neighbors_list(state: State, cell: Cell) -> State:
+def neighbors_list(state: State, cell: Cell) -> State: #effectue la liste des voisins de la cellule en question (uniquement si le voisin est un joueur et non pas une celulle vide)
     neighbors = []
     directions = [(1, 0), (1, 1), (0, 1), (-1, 0), (-1, -1), (0, -1)]
 
@@ -198,7 +198,7 @@ def neighbors_list(state: State, cell: Cell) -> State:
     return neighbors
 
 
-def count_neighbors(state: State, cell: Cell, player: Player = EMPTY) -> int:
+def count_neighbors(state: State, cell: Cell, player: Player = EMPTY) -> int: #Compte le nombre de voisins de la cellule en question 
     neighbors = neighbors_list(state, cell)
     count = 0
 
@@ -218,16 +218,16 @@ def evaluation(state: State, player: Player, game: str, hex_size: int) -> int:
         score = 0
         for cell, p in state:
             if p == opponent:
-                score += count_neighbors(state, cell)
+                score += count_neighbors(state, cell) #on augmente le score si, lors du coup, le nombre de voisins de l'adversaire augmente
         return score
     elif game == GOPHER_STR:
-        return len(legals(state, player, hex_size, game))
+        return len(legals(state, player, hex_size, game)) #retourne le nombre legal de coup
 
 
 def legals(state: State, player: Player, hex_size: int, game: str) -> List[Action]:
     legals = []
 
-    if game == DODO_STR:
+    if game == DODO_STR: #Ensemble des coups legaux pour le dodo
         blue_directions = [(-1, 0), (-1, -1), (0, -1)]
         red_directions = [(1, 0), (1, 1), (0, 1)]
         
@@ -240,7 +240,7 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
             if cell_player == player:
                 for direction in directions:
                     new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state:  # Check if the new cell is within bounds and unoccupied
+                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state:  # vérifie si la nouvelle cellule est bien dans la grille et n'est pas occupée et l'ajoute aux coups legaux
                         legals.append((cell, new_cell))
 
     elif game == GOPHER_STR:
@@ -251,7 +251,7 @@ def legals(state: State, player: Player, hex_size: int, game: str) -> List[Actio
             if cell_player == opponent:
                 for direction in directions:
                     new_cell = (cell[0] + direction[0], cell[1] + direction[1])
-                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state and not count_neighbors(state, new_cell, player) and count_neighbors(state, new_cell, cell_player) == 1:  # Check if the new cell is within bounds and unoccupied
+                    if is_within_bounds(new_cell, hex_size) and (new_cell, EMPTY) in state and not count_neighbors(state, new_cell, player) and count_neighbors(state, new_cell, cell_player) == 1:  # vérifie si la nouvelle cellule est bien dans la grille, n'est pas occupée, et ne possède qu'un seul voisin puis l'ajoute aux coups legaux
                         legals.append(new_cell)
 
     return legals
@@ -264,7 +264,7 @@ def strategy_dodo(env: Environment, state: State, player: Player, time_left: Tim
     for action in legals(state, player, env['hex_size'], DODO_STR):
         new_state = apply_action(state, action, player, DODO_STR)
         eval = minmax(new_state, 2, False, player, env['hex_size'], DODO_STR)
-        if eval >= max_eval:
+        if eval >= max_eval: #prend la meilleure evaluation
             max_eval = eval
             best_action = action
     
@@ -278,12 +278,12 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
     max_eval = float('-inf')
     
     if not legals(state, player, env['hex_size'], GOPHER_STR):
-        best_action = (0, 0)
+        best_action = (0, 0) #évite les bugs quand c'est notre joueur qui joue en prmeier
     else:
         for action in legals(state, player, env['hex_size'], GOPHER_STR):
             new_state = apply_action(state, action, player, GOPHER_STR)
             eval = minmax(new_state, 2, False, player, env['hex_size'], GOPHER_STR)
-            if eval >= max_eval:
+            if eval >= max_eval: #Ici aussi, prend la meilleure evaluation
                 max_eval = eval
                 best_action = action
     print(f"Best action: {best_action}")
@@ -293,9 +293,9 @@ def strategy_gopher(env: Environment, state: State, player: Player, time_left: T
 
 def final(state: State, score: Score, player: Player):
     print(f"Ending: {player} wins with a score of {score}")
-    if player == BLUE :  # Blue wins
+    if player == BLUE :  # le joueur bleu gagne
         print("Blue wins!")
-    else:  # Red wins
+    else:  # le joueur rouge gagne
         print("Red wins!")
 
 """
