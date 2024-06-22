@@ -1,115 +1,20 @@
 # Projet *Gopher and Dodo* : sujet v1.3
 
 ## Commande
-On ajoute "from jeux import Environment, strategy, initialize, final" à test_client.py.
-Pour lancer, le commande est comme ça: python .\test_client.py 33 yicongli_michaelfernandez g33
-Il faut avoir test_client.py, jeux.py, gndclient.py dans une même répertoire
-Le plupart de fonction est à jeux.py
+Afin de faire marcher le jeu, on ajoute "from jeux import Environment, strategy, initialize, final" à test_client.py.
+Pour lancer, la commande à utiliser dans le terminal est: python .\test_client.py 33 yicongli_michaelfernandez g33
+Il faut avoir test_client.py, jeux.py, gndclient.py dans un même répertoire
+La plupart des fonctions codées sont situés dans le fichier jeux.py
 
-Pour les fonction, on utilise le même philosophy qu'on a appris pour tictactoe à TP, il y a un légal pour donner des movement possible, une évaluation pour le choix des actions dans légals parce que c'est pas pratique de faire la simulation jusqu'au bout, c'est surement causer un timeout. et min-max(et son amélioration alpha-beta)
+##Structure du code
+Pour les fonction, on utilise la même structure qu'on a appris pour le tictactoe dans les TP, il y a un légal pour donner les movements possibles (en fonction du jeu passé en argument), une évaluation pour le choix des actions(encore une fois en fonction du jeu).Nous avons aussi fait 2 versions, une mix-max au début puis une alpha beta par la suite, mais nous nous somme rendu compte que notre minmax (avec memoization), obtenait de meilleurs résultats de manière générale donc c'est ce programme que nous avons choisi pour le tournois.
 
-Pour l'axe hexagonal...
+Pour l'axe hexagonal, son initialisation est faite aussi grâce à plusieurs fonctions dépendants du jeu.(nous avons assez bien commenté le code pour que celui-ci soit assez compréhensible)En ce qui concerne la fonction final, elle est assez simple et renvoie le joueur gagant.
 
-Pour le bug de gopher(ne peut pas jouer le permier pas)
+##Les + et - du projet
+Nous avons réussi à faire fonctionner notre code sur les deux jeux avec cette IA minmax avec winrate contre random d'environ 90-95% et un depth de 3(bon compromis temps/résultat).
+Ce qui a été le plus dur dans notre projet a été l'implémentation de la fonction legals puisque nous avons été bloqué pendant plusieurs jours sur ce type de problème mais nous avons réussi à le régler quelques jours avant le tournois.
 
-Pour l'amélioration de evalution à futur
-
-
-
-
-## Online Game
-Gopher: https://ludii.games/details.php?keyword=Gopher
-Dodo:   https://ludii.games/details.php?keyword=Dodo
-
-## ChangeLog
-
-- 07/05/2024, v1.3 : changement de l'annotation du type Action pour le rendre compatible avec les versions 3.5 ou plus récentes
-- 07/05/2024, v1.2 : correction de coquilles + signature final
-- 07/05/2024, v1.1 : ajout des recommendations + correction de coquilles
-- 06/05/2024, v1.0 : initiale version
-
-## I. Présentation générale
-
-L'objectif de ce projet est de créer des joueurs artificieles de Gopher et de Dodo capables de jouer à une compétition d'IA. 
-
-Les règles de ces 2 jeux sont fournies sur le moodle de l'UV.
-
-## II. API
-
-```python3
-# Types de base utilisés par l'arbitre
-Environment = ... # Ensemble des données utiles (cache, état de jeu...) pour
-                  # que votre IA puisse jouer (objet, dictionnaire, autre...)
-Cell = tuple[int, int]
-ActionGopher = Cell
-ActionDodo = tuple[Cell, Cell] # case de départ -> case d'arrivée
-Action = Union[ActionGopher, ActionDodo]
-Player = int # 1 ou 2
-State = list[tuple[Cell, Player]] # État du jeu pour la boucle de jeu
-Score = int
-Time = int
-```
-
-Vous devez implémenter les 3 fonctions suivantes permettant à la boucle de jeu de fonctionner.
-
-### Fonction d'initialisation
-
-```python
-def initialize(game: str, state: State, player: Player, 
-               hex_size: int, total_time: Time) -> Environment
-            
-```
-
-Cette fonction est lancée au début du jeu. Elle dit à quel jeu on joue, le joueur que l'on est et renvoie l'environnement, c'est-à-dire la structure de donnée (objet, dictionnaire, etc.) que vous utiliserez pour jouer.
+De manière générale notre code est bien structuré et fonctionne mais n'est pas parfait et pourrait encore être améliorer comme notamment en améliorant l'évaluation en rajoutant des conditions qui facilite la bonne prise de décision.
 
 
-### Fonction de jeu
-
-```python
-def strategy(env: Environment, state: State, player: Player,
-             time_left: Time) -> tuple[Environment, Action]
-```
-
-Cette fonction est la strategie que vous utilisez pour jouer. Cette fonction est lancée à chaque fois que c'est à votre joueur de jouer.
-
-### Resultat de la partie
-
-```python
-def final_result(state: State, score: Score, player: Player)
-```
-
-Cette fonction est appelée à la fin du jeu et revoie le joueur gagnant, l'état final et le score.
-
-## III. Représentation des cases
-
-*cf. figures sur Moodle*
-
-## IV. Travail demandé et consignes
-
-### Jalon
-
-- **vendredi 10 mai, 23h59 :** choix des binômes
-- **vendredi 21 juin :** compétition finale d'IA
-- **vendredi 21 juin, 23h59 :** dépôt des sources
-
-### Déroulement de la compétition
-
-- Chaque joueur possède un temps de jeu global individuel par match (comme une horloge dans les parties d'échec)
-- En cas de coup illegal, le serveur selectionnera la première action disponible
-- Lors d'une confrontation il y aura deux matchs: un en temps que joueur 1 et l'autre en temps que joueur 2
-
-### Divers
-
-- Le projet doit être écrit en Python 3
-- Le projet doit être réalisé en binômes d'un même TP
-
-### Code fourni
-
-- La boucle de jeu sera fournie
-- La partie réseau vous sera fournie
-
-### Quelqures recommandations
-
-- Les TP sont une bonnes base de départ...
-
-## FAQ
