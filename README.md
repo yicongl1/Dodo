@@ -2,6 +2,7 @@
 
 ## Commande
 Afin de faire marcher le jeu, on ajoute "from jeux import Environment, strategy, initialize, final" à test_client.py.
+
 Pour lancer, la commande à utiliser dans le terminal est: python .\test_client.py 33 yicongli_michaelfernandez g33
 Il faut avoir test_client.py, jeux.py, gndclient.py dans un même répertoire
 La plupart des fonctions codées sont situés dans le fichier jeux.py
