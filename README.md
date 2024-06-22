@@ -1,5 +1,22 @@
 # Projet *Gopher and Dodo* : sujet v1.3
 
+## Commande
+On ajoute "from jeux import Environment, strategy, initialize, final" à test_client.py.
+Pour lancer, le commande est comme ça: python .\test_client.py 33 yicongli_michaelfernandez g33
+Il faut avoir test_client.py, jeux.py, gndclient.py dans une même répertoire
+Le plupart de fonction est à jeux.py
+
+Pour les fonction, on utilise le même philosophy qu'on a appris pour tictactoe à TP, il y a un légal pour donner des movement possible, une évaluation pour le choix des actions dans légals parce que c'est pas pratique de faire la simulation jusqu'au bout, c'est surement causer un timeout. et min-max(et son amélioration alpha-beta)
+
+Pour l'axe hexagonal...
+
+Pour le bug de gopher(ne peut pas jouer le permier pas)
+
+Pour l'amélioration de evalution à futur
+
+
+
+
 ## Online Game
 Gopher: https://ludii.games/details.php?keyword=Gopher
 Dodo:   https://ludii.games/details.php?keyword=Dodo
